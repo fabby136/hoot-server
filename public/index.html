@@ -23,6 +23,8 @@
   <div class="card time-card"><label>Ring at</label><input type="time" id="time" value="07:00"></div>
   <div class="card"><label>Label</label><input id="label" placeholder="don't forget your lunchbox 🍱" maxlength="80"></div>
   <div class="card" id="fromWrap" hidden><label>From (your name)</label><input id="from" placeholder="Xiangxiu" maxlength="40"></div>
+  <div class="card" id="riddleWrap" hidden><label>Wake-up riddle (optional)</label><input id="riddleQ" placeholder="What is black, croaks, and says Nevermore?" maxlength="200"><input id="riddleA" placeholder="Answer (e.g. a raven)" maxlength="80"></div>
+  <label class="card toggle" id="filterWrap"><span><b>🐦‍⬛ Raven voice</b><small>Deep, echoing cathedral effect</small></span><span class="switch"><input type="checkbox" id="filterOn"><span></span></span></label>
   <div class="mic-zone">
    <button id="recBtn" class="mic"><span class="ring r1"></span><span class="ring r2"></span><span class="dot">🎙️</span></button>
    <p id="recStatus" class="hint">Tap to record your message</p>
@@ -53,8 +55,17 @@
    <p id="armNote" class="hint arm-note">Keep this page open — your phone screen will stay on. Turn the volume up and the silent switch off.</p>
   </div>
   <button id="hearBtn" class="btn big primary pulse" hidden>▶ Tap to hear thy message</button>
-  <button id="fStop" class="btn big stop" hidden>Stop</button>
+  <button id="fSnooze" class="btn big ghost" hidden>😴 Snooze 5 min</button>
+  <button id="fStop" class="btn big stop" hidden>Silence the bells</button>
   <p id="fErr" class="hint" hidden></p>
+  <div id="replyZone" class="card reply" hidden>
+   <h3>Reply by raven</h3><p class="sub">Record a voice reply — a raven will carry it back to <b id="rTo">them</b>.</p>
+   <input id="rName" placeholder="Thy name" maxlength="40">
+   <button id="rRec" class="btn primary">🎙️ Record reply</button>
+   <audio id="rPrev" controls hidden></audio>
+   <button id="rSend" class="btn primary" hidden>🪶 Send by raven</button>
+   <p id="rStatus" class="sub"></p>
+  </div>
   <button id="addFriend" class="btn big ghost">⏰ Add to my alarms</button>
  </section>
  <!-- RINGING -->
@@ -64,8 +75,15 @@
   <p class="ring-label" id="ringLabel">don't forget your lunchbox</p>
   <p class="ring-from" id="ringFrom"></p>
   <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="ring-actions"><button id="snoozeBtn" class="btn big snooze">😴 Snooze 5 min</button><button id="stopBtn" class="btn big stop">Stop</button></div>
+  <div class="ring-actions"><button id="snoozeBtn" class="btn big snooze">😴 Snooze 5 min</button><button id="stopBtn" class="btn big stop">Silence the bells</button></div>
  </section>
+ <div id="riddle" class="riddle-veil" hidden><div class="card riddle-card">
+  <div class="kicker">ere the bells fall silent, answer</div><h3>The Raven’s Riddle</h3>
+  <p id="rq" class="rq"></p><input id="ra" placeholder="Thine answer…" autocomplete="off">
+  <p id="rmsg" class="sub"></p>
+  <button id="raGo" class="btn primary">Answer</button>
+  <div class="row"><button id="raHint" class="btn ghost2" hidden>Hint</button><button id="raGive" class="btn ghost2" hidden>Give up</button><button id="raLater" class="btn ghost2">Not yet</button></div>
+ </div></div>
  <div id="toast" class="toast"></div>
 </div>
 <script src="/app.js"></script></body></html>

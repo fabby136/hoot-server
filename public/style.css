@@ -65,3 +65,13 @@ h1,h2,h3,.display{font-family:"Pirata One","UnifrakturMaguntia",serif;font-weigh
 .btn.arm.armed{background:var(--gold);color:#2a1608;border-color:#7a5a22}.arm-note{font-size:14px;margin:8px 4px 0}
 .pulse{animation:glowp 1.2s ease-in-out infinite;font-size:20px!important;margin:14px 0}@keyframes glowp{0%,100%{transform:scale(1)}50%{transform:scale(1.05);box-shadow:0 0 0 12px rgba(217,168,78,.18),0 0 30px rgba(217,168,78,.4)}}
 #friend .btn.stop{margin:12px 0}#friend .btn{margin-top:10px}#fErr{color:#e58a7a}
+
+/* Raven voice toggle, riddle, reply */
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}.toggle b{display:block;color:var(--burg)}.toggle small{color:var(--muted);font-style:italic;font-size:14px}
+#riddleWrap input+input{border-top:1px dashed var(--edge)}
+.riddle-veil{position:fixed;inset:0;z-index:30;background:rgba(8,6,5,.82);display:flex;align-items:center;justify-content:center;padding:20px}.riddle-veil[hidden]{display:none}
+.riddle-card{max-width:420px;width:100%;text-align:center;padding:22px}.riddle-card h3{margin:0 0 6px;font-size:32px;color:var(--burg)}.riddle-card .kicker{margin:0}
+.rq{font-size:20px;font-style:italic;margin:6px 0 12px}.riddle-card input,.reply input{width:100%;font:inherit;font-size:19px;padding:10px;border:1.5px solid var(--edge);border-radius:4px;background:#f8eed6;color:var(--ink);text-align:center}
+.riddle-card .btn{width:100%;margin-top:10px}.riddle-card .row{display:flex;gap:8px}.btn.ghost2{background:rgba(110,82,54,.1);color:var(--ink);border:2px solid var(--edge);flex:1}
+.riddle-card .sub,.reply .sub{color:var(--muted);font-style:italic;margin:8px 0 0}.riddle-card.shake{animation:shake .4s}@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.reply{text-align:center;display:flex;flex-direction:column;gap:10px;padding:18px}.reply h3{margin:0;font-size:30px;color:var(--burg)}.reply .btn{width:100%;margin:0!important}.reply .btn.rec{background:linear-gradient(180deg,#c0283c,#5a0d18)}
