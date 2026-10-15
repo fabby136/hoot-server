@@ -1,4 +1,4 @@
-const C='hoot-v2',SHELL=['/','/index.html','/style.css','/app.js','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png'];
+const C='hoot-v3',SHELL=['/','/index.html','/style.css','/app.js','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png','/raven.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(u.pathname.startsWith('/api/')||e.request.method!=='GET')return;

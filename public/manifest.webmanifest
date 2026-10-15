@@ -1,2 +1,2 @@
-{"name":"Hoot · Voice Alarms","short_name":"Hoot","start_url":"/","display":"standalone","background_color":"#fff6ec","theme_color":"#ff8a5c","orientation":"portrait",
+{"name":"Nevermore · Voice Alarms","short_name":"Nevermore","start_url":"/","display":"standalone","background_color":"#14110f","theme_color":"#14110f","orientation":"portrait",
 "icons":[{"src":"/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},{"src":"/icon.svg","sizes":"any","type":"image/svg+xml"}]}

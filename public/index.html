@@ -1,18 +1,20 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ff8a5c"><link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#14110f"><link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg"><link rel="apple-touch-icon" href="/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes"><title>Hoot · Voice Alarms</title>
+<meta name="apple-mobile-web-app-capable" content="yes"><title>Nevermore · Voice Alarms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Pirata+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css"></head><body>
 <div id="app">
  <!-- HOME -->
  <section id="home" class="screen active">
-  <header class="top"><div><p class="hello" id="hello">Good morning ☀️</p><h1>Your alarms</h1></div><div class="clock" id="clock">--:--</div></header>
+  <header class="top"><div><p class="hello" id="hello">Good morning ☀️</p><h1><span class="crest"></span>Nevermore</h1></div><div class="clock" id="clock">--:--</div></header>
   <ul id="list" class="list"></ul>
-  <div id="empty" class="empty"><div class="blob">🦉</div><p>No alarms yet.<br>Record a little note to future you!</p></div>
+  <div id="empty" class="empty"><div class="blob" role="img" aria-label="raven"></div><p>No alarms yet.<br>Record a little note to future you!</p></div>
   <div class="actions">
    <button class="btn big primary" data-go="record" data-mode="self">🎙️ New voice alarm</button>
-   <button class="btn big ghost" data-go="record" data-mode="friend">🎁 Send one to a friend</button>
+   <button class="btn big ghost" data-go="record" data-mode="friend">📜 Send a sealed message</button>
   </div>
  </section>
  <!-- RECORD -->
@@ -31,26 +33,26 @@
  </section>
  <!-- SHARED (sender result) -->
  <section id="shared" class="screen">
-  <header class="bar"><button class="icon" data-go="home">‹</button><h2>Surprise ready!</h2><span></span></header>
-  <div class="gift">🎁</div><p class="center">Send this link. They can't hear it until <b id="sharedWhen"></b>.</p>
+  <header class="bar"><button class="icon" data-go="home">‹</button><h2>Sealed with wax</h2><span></span></header>
+  <div class="gift"><div class="wax"></div></div><p class="center">Thy message is sealed. Send this link — none may hear it until <b id="sharedWhen"></b>.</p>
   <div class="card linkbox"><input id="shareUrl" readonly></div>
   <button id="copyBtn" class="btn big primary">Copy link</button><button id="nativeShare" class="btn big ghost">Share…</button>
  </section>
  <!-- FRIEND CARD (recipient) -->
  <section id="friend" class="screen">
-  <header class="bar"><button class="icon" data-go="home">‹</button><h2>Incoming!</h2><span></span></header>
+  <header class="bar"><button class="icon" data-go="home">‹</button><h2>A sealed missive</h2><span></span></header>
   <div class="locked-card" id="lockedCard">
-   <div class="ribbon"></div><div class="lock" id="lockIcon">🔒</div>
-   <p class="kicker">surprise alarm from</p><h3 id="fFrom">…</h3>
-   <p class="at">rings at <b id="fTime">…</b></p><p class="date" id="fDate"></p>
+   <div class="ribbon"></div><div class="lock wax" id="lockIcon" aria-label="wax seal"></div>
+   <p class="kicker">a sealed message from</p><h3 id="fFrom">…</h3>
+   <p class="at">Sealed until <b id="fTime">…</b></p><p class="date" id="fDate"></p>
    <div class="countdown" id="fCount"></div>
-   <p class="sealed" id="fSealed">The message is sealed until then. No peeking! 🤫</p>
+   <p class="sealed" id="fSealed">None may break this seal before the appointed hour.</p>
   </div>
   <div id="armZone" class="arm-zone">
    <button id="armBtn" class="btn big arm">Tap to arm the alarm 🔔</button>
    <p id="armNote" class="hint arm-note">Keep this page open — your phone screen will stay on. Turn the volume up and the silent switch off.</p>
   </div>
-  <button id="hearBtn" class="btn big primary pulse" hidden>▶ Tap to hear your surprise</button>
+  <button id="hearBtn" class="btn big primary pulse" hidden>▶ Tap to hear thy message</button>
   <button id="fStop" class="btn big stop" hidden>Stop</button>
   <p id="fErr" class="hint" hidden></p>
   <button id="addFriend" class="btn big ghost">⏰ Add to my alarms</button>

@@ -21,8 +21,8 @@ function render() {
   [...alarms].sort((a, b) => a.time.localeCompare(b.time)).forEach(a => {
     const [t, ap] = fmt12(a.time), li = document.createElement('li');
     li.className = 'alarm' + (a.enabled ? '' : ' off');
-    const sub = a.shareId ? `🎁 from ${esc(a.from)} · ${new Date(a.unlockAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}` : (a.snoozeUntil > Date.now() ? '😴 snoozed' : 'every day');
-    li.innerHTML = `<div class="meta"><div class="t">${t}<small>${ap}</small></div><div class="lbl">${esc(a.label || (a.shareId ? 'Surprise message 🔒' : 'Voice alarm'))}</div><div class="sub">${sub}</div></div>
+    const sub = a.shareId ? `📜 from ${esc(a.from)} · ${new Date(a.unlockAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}` : (a.snoozeUntil > Date.now() ? '😴 snoozed' : 'every day');
+    li.innerHTML = `<div class="meta"><div class="t">${t}<small>${ap}</small></div><div class="lbl">${esc(a.label || (a.shareId ? 'Sealed message' : 'Voice alarm'))}</div><div class="sub">${sub}</div></div>
       <button class="play" title="Preview">▶︎</button><button class="del" title="Delete">🗑</button>
       <label class="switch"><input type="checkbox" ${a.enabled ? 'checked' : ''}><span></span></label>`;
     li.querySelector('input').onchange = e => { a.enabled = e.target.checked; a.lastFired = null; saveAlarms(alarms); render(); };
@@ -50,7 +50,7 @@ function openRecord(m) {
   $('#recTitle').textContent = m === 'friend' ? 'Surprise a friend' : 'New voice alarm';
   $('#fromWrap').hidden = m !== 'friend'; $('#from').value = localStorage.getItem('name') || '';
   $('#time').value = m === 'friend' ? '23:00' : '07:00';
-  $('#saveBtn').textContent = m === 'friend' ? '🎁 Create share link' : 'Save alarm'; go('record');
+  $('#saveBtn').textContent = m === 'friend' ? 'Seal with wax & get link' : 'Save alarm'; go('record');
 }
 $('#recBtn').onclick = async () => {
   if (rec && rec.state === 'recording') return stopRec();
@@ -82,7 +82,7 @@ $('#saveBtn').onclick = async () => {
   }
 };
 $('#copyBtn').onclick = async () => { try { await navigator.clipboard.writeText($('#shareUrl').value); toast('Link copied 📋'); } catch { $('#shareUrl').select(); } };
-$('#nativeShare').onclick = () => navigator.share ? navigator.share({ title: 'A surprise alarm for you 🎁', url: $('#shareUrl').value }) : $('#copyBtn').click();
+$('#nativeShare').onclick = () => navigator.share ? navigator.share({ title: 'A sealed Nevermore message for thee', url: $('#shareUrl').value }) : $('#copyBtn').click();
 
 // ---------- recipient view ----------
 let share, cdTimer;
@@ -93,7 +93,7 @@ async function openShare(id) {
   $('#fFrom').textContent = share.from; $('#fTime').textContent = fmt12(hhmm).join(' ');
   $('#fDate').textContent = at.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   resetFriendAudio(id, at <= new Date(Date.now() + skew));
-  const tick = () => { const ms = at - (Date.now() + skew); if (ms <= 0) { onUnlock(); $('#fCount').textContent = '🔓 Unlocked!'; $('#lockIcon').textContent = '🔓'; $('#fSealed').textContent = share.label ? `“${share.label}”` : 'Open it from your alarms!'; return clearInterval(cdTimer); }
+  const tick = () => { const ms = at - (Date.now() + skew); if (ms <= 0) { onUnlock(); $('#fCount').textContent = 'The seal is broken'; $('#lockIcon').classList.add('broken'); $('#fSealed').textContent = share.label ? `“${share.label}”` : 'Open it from your alarms!'; return clearInterval(cdTimer); }
     const s = Math.floor(ms / 1000); $('#fCount').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`; };
   clearInterval(cdTimer); tick(); cdTimer = setInterval(tick, 1000);
   const already = alarms.some(a => a.shareId === id); $('#addFriend').disabled = already; $('#addFriend').textContent = already ? '✓ In your alarms' : '⏰ Add to my alarms';
@@ -170,7 +170,7 @@ setInterval(() => { const now = new Date(); $('#clock').textContent = pad(now.ge
 async function ring(a) {
   ringing = a; const now = new Date(); a.lastFired = a.shareId ? 'done' : now.toDateString() + a.time; a.snoozeUntil = null; saveAlarms(alarms);
   const blob = await audioFor(a);
-  $('#ringTime').textContent = fmt12(a.time).join(' '); $('#ringLabel').textContent = a.label || 'Wake up! ⏰'; $('#ringFrom').textContent = a.from ? `🎁 a surprise from ${a.from}` : '';
+  $('#ringTime').textContent = fmt12(a.time).join(' '); $('#ringLabel').textContent = a.label || 'Rise, the bells are tolling!'; $('#ringFrom').textContent = a.from ? `a missive from ${a.from}` : '';
   $('#toast').classList.remove('show'); go('ringing');
   player = new Audio(blob ? URL.createObjectURL(blob) : undefined); player.loop = true; player.volume = 1;
   try { gainCtx = new AudioContext(); const g = gainCtx.createGain(); g.gain.value = 2.5; gainCtx.createMediaElementSource(player).connect(g).connect(gainCtx.destination); } catch {}
