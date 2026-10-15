@@ -92,13 +92,69 @@ async function openShare(id) {
   const hhmm = pad(at.getHours()) + ':' + pad(at.getMinutes());
   $('#fFrom').textContent = share.from; $('#fTime').textContent = fmt12(hhmm).join(' ');
   $('#fDate').textContent = at.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  const tick = () => { const ms = at - (Date.now() + skew); if (ms <= 0) { $('#fCount').textContent = '🔓 Unlocked!'; $('#lockIcon').textContent = '🔓'; $('#fSealed').textContent = share.label ? `“${share.label}”` : 'Open it from your alarms!'; return clearInterval(cdTimer); }
+  resetFriendAudio(id, at <= new Date(Date.now() + skew));
+  const tick = () => { const ms = at - (Date.now() + skew); if (ms <= 0) { onUnlock(); $('#fCount').textContent = '🔓 Unlocked!'; $('#lockIcon').textContent = '🔓'; $('#fSealed').textContent = share.label ? `“${share.label}”` : 'Open it from your alarms!'; return clearInterval(cdTimer); }
     const s = Math.floor(ms / 1000); $('#fCount').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`; };
   clearInterval(cdTimer); tick(); cdTimer = setInterval(tick, 1000);
   const already = alarms.some(a => a.shareId === id); $('#addFriend').disabled = already; $('#addFriend').textContent = already ? '✓ In your alarms' : '⏰ Add to my alarms';
   $('#addFriend').onclick = () => { alarms.push({ id: uid(), shareId: id, from: share.from, unlockAt: share.unlockAt, time: hhmm, label: '', enabled: true, lastFired: null }); saveAlarms(alarms); toast('Added! It will ring at ' + fmt12(hhmm).join(' ')); history.replaceState(null, '', '/'); go('home'); };
   go('friend');
 }
+
+// ---------- recipient: arm audio for iOS autoplay, keep screen awake, autoplay at unlock ----------
+// iOS Safari only lets a media element play without a tap if it was started once inside a tap.
+// So "arm" primes our <audio> element (+ an AudioContext) with a silent clip during the user's tap.
+const SILENT = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+const fAudio = new Audio(); fAudio.setAttribute('playsinline', ''); fAudio.preload = 'auto';
+let fCtx = null, fBufSrc = null, armed = false, wakeLock = null, fShareId = null, fDone = false, fPlaying = false, fVibe = null;
+async function getWake() {
+  try { if ('wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) { console.warn('wake lock', e); }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (armed || fPlaying)) { getWake(); if (fCtx && fCtx.state !== 'running') fCtx.resume(); } });
+function resetFriendAudio(id, unlockedAlready) {
+  fShareId = id; fDone = false; $('#fErr').hidden = true; $('#fStop').hidden = true;
+  $('#armZone').hidden = unlockedAlready; $('#hearBtn').hidden = !unlockedAlready;
+}
+$('#armBtn').onclick = async () => {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (AC) { fCtx = fCtx || new AC(); await fCtx.resume(); const b = fCtx.createBuffer(1, 1, 22050), n = fCtx.createBufferSource(); n.buffer = b; n.connect(fCtx.destination); n.start(0); }
+    fAudio.src = SILENT; fAudio.muted = false; await fAudio.play().catch(() => {}); fAudio.pause(); fAudio.currentTime = 0;
+    armed = true; await getWake();
+    $('#armBtn').classList.add('armed'); $('#armBtn').textContent = '✅ Armed — it will play automatically';
+    $('#armNote').textContent = wakeLock ? 'Keep this page open — your phone screen will stay on. 🔆' : 'Keep this page open and the screen on (your browser can’t keep it awake automatically).';
+  } catch (e) { $('#fErr').hidden = false; $('#fErr').textContent = 'Could not arm audio: ' + e.message; }
+};
+async function fetchClip() {
+  const r = await fetch(`/api/shares/${fShareId}/audio`, { cache: 'no-store' });
+  if (r.status === 423) throw new Error('still locked'); if (!r.ok) throw new Error('clip unavailable (' + r.status + ')');
+  return r.blob();
+}
+async function playSurprise() {
+  if (fPlaying) return; fDone = true;
+  let blob; try { blob = await fetchClip(); } catch (e) { $('#fErr').hidden = false; $('#fErr').textContent = '⚠️ ' + e.message; $('#hearBtn').hidden = false; return; }
+  // iOS Safari plays m4a/mp4 (AAC) natively; webm (from old web recordings) may fail → try AudioContext decode.
+  fAudio.src = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type: 'audio/mp4' })); fAudio.loop = true;
+  try { await fAudio.play(); }
+  catch (e) {
+    try { if (!fCtx) { const AC = window.AudioContext || window.webkitAudioContext; fCtx = new AC(); } await fCtx.resume();
+      const buf = await fCtx.decodeAudioData(await blob.arrayBuffer()); fBufSrc = fCtx.createBufferSource(); fBufSrc.buffer = buf; fBufSrc.loop = true; fBufSrc.connect(fCtx.destination); fBufSrc.start(0);
+      if (fCtx.state !== 'running') throw new Error('audio blocked');
+    } catch (e2) { $('#hearBtn').hidden = false; $('#armZone').hidden = true; $('#fErr').hidden = false; $('#fErr').textContent = 'Tap the button to play (your browser blocked autoplay).'; return; }
+  }
+  fPlaying = true; $('#hearBtn').hidden = true; $('#armZone').hidden = true; $('#fErr').hidden = true; $('#fStop').hidden = false;
+  if (navigator.vibrate) { navigator.vibrate([600, 300, 600]); fVibe = setInterval(() => navigator.vibrate([600, 300, 600]), 2000); }
+}
+function stopSurprise() {
+  fAudio.pause(); fAudio.currentTime = 0; try { fBufSrc && fBufSrc.stop(); } catch {} fBufSrc = null; fPlaying = false;
+  clearInterval(fVibe); navigator.vibrate && navigator.vibrate(0); if (wakeLock) wakeLock.release().catch(() => {}); armed = false;
+  $('#fStop').hidden = true; $('#hearBtn').hidden = false; $('#hearBtn').textContent = '▶ Play again';
+}
+function onUnlock() {
+  if (fDone) return;
+  if (armed) playSurprise(); else { fDone = true; $('#armZone').hidden = true; $('#hearBtn').hidden = false; }
+}
+$('#hearBtn').onclick = () => { fDone = false; playSurprise(); };
+$('#fStop').onclick = stopSurprise;
 
 // ---------- ringing engine (runs while the app is open) ----------
 let ringing = null, player, gainCtx;

@@ -46,7 +46,14 @@
    <div class="countdown" id="fCount"></div>
    <p class="sealed" id="fSealed">The message is sealed until then. No peeking! 🤫</p>
   </div>
-  <button id="addFriend" class="btn big primary">⏰ Add to my alarms</button>
+  <div id="armZone" class="arm-zone">
+   <button id="armBtn" class="btn big arm">Tap to arm the alarm 🔔</button>
+   <p id="armNote" class="hint arm-note">Keep this page open — your phone screen will stay on. Turn the volume up and the silent switch off.</p>
+  </div>
+  <button id="hearBtn" class="btn big primary pulse" hidden>▶ Tap to hear your surprise</button>
+  <button id="fStop" class="btn big stop" hidden>Stop</button>
+  <p id="fErr" class="hint" hidden></p>
+  <button id="addFriend" class="btn big ghost">⏰ Add to my alarms</button>
  </section>
  <!-- RINGING -->
  <section id="ringing" class="screen">
